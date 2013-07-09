@@ -1,0 +1,48 @@
+
+<html><head><title>Fooball-server test page</title></head>
+<body>
+<script type="text/javascript">
+  var socket;
+  if (!window.WebSocket) {
+    window.WebSocket = window.MozWebSocket;
+  }
+  if (window.WebSocket) {
+    socket = new WebSocket("ws://localhost:8888/websocket/");
+    socket.onmessage = function(event) { var ta = document.getElementById('responseText'); ta.value = ta.value + '\n' + event.data; ta.scrollTop = ta.scrollHeight; };
+    socket.onopen = function(event) { var ta = document.getElementById('responseText'); ta.value = "Web Socket opened!"; };
+    socket.onclose = function(event) { var ta = document.getElementById('responseText'); ta.value = ta.value + "\nWeb Socket closed"; ta.scrollTop = ta.scrollHeight; };
+  } else { 
+    alert("Your browser does not support Web Sockets.");
+  }
+  
+  function send(message) {
+    if (!window.WebSocket) { return; }
+    if (socket.readyState == WebSocket.OPEN) {
+      socket.send(message);
+    } else {
+      alert("The socket is not open.");
+    }
+  }
+  function getMessage(name) {
+   console.log(name)
+  	if(name=="move") {
+  		return JSON.stringify({components:[{jsonClass: "UserInput", "typ": "kd", "value": 1}]});
+  	} else {
+  		return "";
+  	}
+  }
+</script>
+<h1>Fooball-server test page</h1>
+<form onsubmit="return false;">
+  <input type="text" name="message" id="message" value=''/>
+  <input type="button" value="Send" onclick="send(this.form.message.value)" />
+  <select name="choose" id="choose" onchange="this.form.message.value=getMessage(this.options[this.selectedIndex].value)">
+  	<option></option>
+  	<option>move</option>
+  </select>
+  
+  <h3>Output</h3>
+  <textarea id="responseText" style="width: 500px; height:300px;"></textarea>
+</form>
+</body>
+</html>
