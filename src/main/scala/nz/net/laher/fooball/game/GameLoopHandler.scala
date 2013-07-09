@@ -17,17 +17,20 @@ class GameLoopHandler(game : Game) extends Actor {
   	case _ =>
   	  log.info("received unknown message of type: {}", (AnyRef)_)
   }
-  def updateEntities() {
+  def updateEntities(dt : Int) {
     //update ball
+    game.ball.state.update(dt)
     //update players
+    game.team1.players.foreach({ _.state.update(dt)})
     //update t2 players
-    //
+    game.team2.players.foreach({ _.state.update(dt)})
+    //check collisions
   }
   def start {
 	  def loop : Boolean = running match {
 	    case true => {
 	      //update entities
-	      updateEntities()
+	      updateEntities(1)
 	      return loop
 	    }
 	    case _ => {
