@@ -20,16 +20,24 @@ class GameLoopHandler(game : Game) extends Actor {
   def updateEntities(dt : Int) {
     //update ball
     game.ball.state.update(dt)
+    //update user-selected
+	game.users.foreach({ u => game.team(u.teamname).get.players(u.selected).state.update(u.state, dt) })
+    //update user non-selected
+	//game.teamsList().foreach({ t => t.players.foreach({ p => p.react() }) })
     //update players
-    game.team1.players.foreach({ _.state.update(dt)})
+    game.teams._1.players.foreach({ _.state.update(dt)})
     //update t2 players
-    game.team2.players.foreach({ _.state.update(dt)})
+    game.teams._2.players.foreach({ _.state.update(dt)})
     //check collisions
   }
   def start {
 	  def loop : Boolean = running match {
 	    case true => {
-	      //update entities
+		//  pump events
+		//  update input
+		//  update AI
+		//  update physics
+		//  render
 	      updateEntities(1)
 	      return loop
 	    }

@@ -11,14 +11,31 @@ case class MobileState(var position: Vector2D = new Vector2D(), var velocity : V
     //v = v + dt * a
     velocity = velocity.add(acceleration.mul(dt))
   }
+  def update(state : UserState, dt : Int) {
+    
+  }
 }
 case class Player(number : Int, state : MobileState = MobileState())
 case class Ball(state : MobileState = MobileState())
 case class Team(name : String, players : List[Player])
 
-case class User(teamname : String, state: UserState = UserState())
+case class User(teamname : String, selected: Int, state: UserState = UserState())
 case class Score(s1 : Int = 0, s2 : Int = 0)
-case class Game(team1 : Team, team2 : Team, users : List[User], ball : Ball, score : Score = Score())
+
+case class Game(teams : Tuple2[Team,Team], users : List[User], ball : Ball, score : Score = Score()) {
+  def team(name : String) : Option[Team] = {
+    if (teams._1.name.equals(name)) {
+      Some(teams._1)
+    } else if (teams._2.name.equals(name)) {
+      Some(teams._2)
+    } else {
+      None
+    }
+  }
+  def teamsList() : List[Team] = {
+    List(teams._1, teams._2)
+  }
+}
 case class GameView(team1 : Option[Team] = None, team2 : Option[Team] = None, users : Option[List[User]] = None, ball : Option[Ball] = None, score : Option[Ball] = None)
 
 object Game {
@@ -28,7 +45,7 @@ object Game {
   def newGame(team1Name : String, team2Name : String) : Game = {
     val team1 = Team(team1Name, newPlayers11())
     val team2 = Team(team2Name, newPlayers11())
-    Game(team1, team2, List(User(team1Name)), Ball())
+    Game(Tuple2(team1, team2), List(User(team1Name, 1)), Ball())
   }
   def newGame() : Game = {
     newGame("1","2")
@@ -36,7 +53,7 @@ object Game {
   
   def view(game: Game) : GameView = {
     //todo: slice up game based on relevant changes
-    GameView(Some(Team(game.team1.name, List(Player(1)))))
+    GameView(Some(Team(game.teams._1.name, List(Player(1)))))
   }
 }
 
