@@ -1,3 +1,4 @@
+// This class originates from the socko examples. Keeping copyright and license accordingly
 //
 // Copyright 2012 Vibul Imtarnasan, David Bolton and Socko contributors.
 //
@@ -29,17 +30,15 @@ import org.json4s.native.Serialization
 import org.json4s.native.Serialization.{read,write,formats}
 import nz.net.laher.fooball.game.UserInputHandler
 import nz.net.laher.fooball.game.Game
-import nz.net.laher.fooball.game.Message
-import nz.net.laher.fooball.game.UserInput
-import nz.net.laher.fooball.game.UserState
+import nz.net.laher.fooball.game.GameMessage
 import nz.net.laher.fooball.serialization.Serializers
 import nz.net.laher.fooball.game.GameView
 
 /**
  * Web Socket processor for fooball input
  */
-class WSHandler(game : Game) extends Actor {
-  val log = Logging(context.system, WSHandler.this)
+class GameWSHandler extends Actor {
+  val log = Logging(context.system, GameWSHandler.this)
   
   /**
    * Process incoming events
@@ -60,14 +59,11 @@ class WSHandler(game : Game) extends Actor {
     log.info("TextWebSocketFrame: ." + event.readText + ".")
     //implicit val formats = Serialization.formats(ShortTypeHints(List(classOf[UserInput], classOf[UserState])))
     implicit val formats = Serializers.longFormats
-    var message = read[Message](event.readText)
+    var message = read[GameMessage](event.readText)
     log.info("Received "+message)
-    val inputHandler = context.actorFor("/user/userInputHandler")
+    val inputHandler = context.actorFor("/user/GameLoopHandler/"+message.id)
     message.components.foreach({ inputHandler ! _ })
   }
-  /**
-   * Echo the details of the web socket frame that we just received; but in upper case.
-   */
   private def writeWebSocketResponseBroadcast(event: WebSocketFrameEvent) {
     log.info("TextWebSocketFrame: " + event.readText)
     val dateFormatter = new SimpleDateFormat("HH:mm:ss")
@@ -81,7 +77,6 @@ class WSHandler(game : Game) extends Actor {
     */
     broadcaster ! WebSocketBroadcastText(ts + " received OK")
   }
-/*  
   private def writeWebSocketResponseDirect(event: WebSocketFrameEvent) {
 	    log.info("TextWebSocketFrame: " + event.readText)
 
@@ -91,6 +86,5 @@ class WSHandler(game : Game) extends Actor {
 	    val inputHandler = context.actorFor("/user/userInputHandler")
 	    event.writeText(ts + " " + event.readText.toUpperCase())
 	  }
- */
 }
 

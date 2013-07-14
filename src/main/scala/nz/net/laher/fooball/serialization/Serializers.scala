@@ -1,14 +1,12 @@
 package nz.net.laher.fooball.serialization
 
 import org.json4s.CustomSerializer
-import nz.net.laher.fooball.game.UserInput
 import org.json4s.JsonAST.JObject
 import org.json4s.JsonAST.JField
 import org.json4s.JsonAST.JInt
 import org.json4s.JString
 import org.json4s.FieldSerializer
 import org.json4s.FieldSerializer._
-import nz.net.laher.fooball.game.UserState
 import com.sun.corba.se.impl.protocol.giopmsgheaders.Message
 import org.json4s.ShortTypeHints
 import org.json4s.native.Serialization
@@ -16,6 +14,8 @@ import org.json4s.native.Serialization.formats
 import org.json4s.native.Serialization.read
 import org.json4s.native.Serialization.write
 import org.json4s.DefaultFormats
+import nz.net.laher.fooball.message.UserInput
+import nz.net.laher.fooball.message.UserState
 
 object Serializers {
       val longFormats = new DefaultFormats { 

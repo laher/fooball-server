@@ -6,15 +6,19 @@
   if (!window.WebSocket) {
     window.WebSocket = window.MozWebSocket;
   }
-  if (window.WebSocket) {
-    socket = new WebSocket("ws://localhost:8888/websocket/");
-    socket.onmessage = function(event) { var ta = document.getElementById('responseText'); ta.value = ta.value + '\n' + event.data; ta.scrollTop = ta.scrollHeight; };
-    socket.onopen = function(event) { var ta = document.getElementById('responseText'); ta.value = "Web Socket opened!"; };
-    socket.onclose = function(event) { var ta = document.getElementById('responseText'); ta.value = ta.value + "\nWeb Socket closed"; ta.scrollTop = ta.scrollHeight; };
-  } else { 
-    alert("Your browser does not support Web Sockets.");
+  function connect() {
+	  if (window.WebSocket) {
+	    socket = new WebSocket("ws://localhost:8888/websocket/");
+	    socket.onmessage = function(event) { var ta = document.getElementById('responseText'); ta.value = ta.value + event.data + '\n'; ta.scrollTop = ta.scrollHeight; };
+	    socket.onopen = function(event) { var ta = document.getElementById('responseText'); ta.value = ta.value + "Web Socket opened!\n"; ta.scrollTop = ta.scrollHeight; };
+	    socket.onclose = function(event) { var ta = document.getElementById('responseText'); ta.value = ta.value + "Web Socket closed\n"; ta.scrollTop = ta.scrollHeight; };
+	   } else { 
+	    alert("Your browser does not support Web Sockets.");
+	  }
   }
-  
+  function disconnect() {
+  	socket.close();
+  }
   function send(message) {
     if (!window.WebSocket) { return; }
     if (socket.readyState == WebSocket.OPEN) {
@@ -34,6 +38,8 @@
 </script>
 <h1>Fooball-server test page</h1>
 <form onsubmit="return false;">
+  <input type="button" value="Connect" onclick="connect()" />
+  <input type="button" value="Disconnect" onclick="disconnect()" />
   <input type="text" name="message" id="message" value=''/>
   <input type="button" value="Send" onclick="send(this.form.message.value)" />
   <select name="choose" id="choose" onchange="this.form.message.value=getMessage(this.options[this.selectedIndex].value)">

@@ -1,3 +1,4 @@
+// This class originates from the socko examples. Keeping copyright and license accordingly
 //
 // Copyright 2012 Vibul Imtarnasan, David Bolton and Socko contributors.
 //
@@ -36,21 +37,22 @@ import com.typesafe.config.ConfigFactory
 import akka.routing.FromConfig
 import org.mashupbots.socko.handlers.StaticFileRequest
 import org.mashupbots.socko.events.HttpResponseMessage
+import akka.actor.ActorRef
 
 /**
- * This example shows how to use web sockets, specifically `org.mashupbots.socko.processors.WebSocketBroadcaster`,
- * for chatting.
+ * Fooball app.
+ * 
+ * Static content handler for some test html
+ * 1 WebSocketBroadcaster for the 'lobby'
+ * Multiple WebSocketBroadcasters for games - 1 per game. 
  *
  * With `org.mashupbots.socko.processors.WebSocketBroadcaster`, you can broadcast messages to all registered web
  * socket connections
  *
- *  - Open a few browsers and navigate to `http://localhost:8888/html`.
- *  - A HTML page will be displayed
- *  - It will make a web socket connection to `ws://localhost:8888/websocket/`
- *  - Type in some text on one browser and see it come up on the other browsers
+ *  Navigate to `http://localhost:8888/`.
  */
 object BroadcastApp extends Logger {
-	val game = Game.newGame()
+	val games = Map[String,Game]()
     val actorConfig = """
       my-pinned-dispatcher {
         type=PinnedDispatcher
@@ -69,9 +71,8 @@ object BroadcastApp extends Logger {
         }
       }"""
   val actorSystem = ActorSystem("FooBallSystem", ConfigFactory.parseString(actorConfig))
-  val userInputHandler = actorSystem.actorOf(Props(new UserInputHandler(game)), "userInputHandler")
+  //val userInputHandler = actorSystem.actorOf(Props(new UserInputHandler(game)), "userInputHandler")
   
-  //val contentDir = "/home/am/d/js/fooball/"
   val contentDir = new File(".").getAbsolutePath() + "/src/main/web/"
     val handlerConfig = StaticContentHandlerConfig(
       rootFilePaths = Seq(contentDir),
@@ -80,8 +81,8 @@ object BroadcastApp extends Logger {
   val staticContentHandlerRouter = actorSystem.actorOf(Props(new StaticContentHandler(handlerConfig))
       .withRouter(FromConfig()).withDispatcher("my-pinned-dispatcher"), "static-file-router")
 
-  val webSocketBroadcaster = actorSystem.actorOf(Props[WebSocketBroadcaster], "webSocketBroadcaster")
-
+  val lobbyWebSocketBroadcaster = actorSystem.actorOf(Props[WebSocketBroadcaster], LobbyWSHandler.broadcasterRef)
+  val gameWebSocketBroadcasterMap = Map[String,ActorRef]()
       //
   // STEP #2 - Define Routes
   // Each route dispatches the request to a newly instanced `WebSocketHandler` actor for processing.
@@ -107,22 +108,41 @@ object BroadcastApp extends Logger {
     }
 
     case WebSocketHandshake(wsHandshake) => wsHandshake match {
-      case Path("/websocket/") => {
+      //list games
+      case Path("/lobby") => {
         // To start Web Socket processing, we first have to authorize the handshake.
         // This is a security measure to make sure that web sockets can only be established at your specified end points.
         wsHandshake.authorize(onComplete = Some((event: WebSocketHandshakeEvent) => {
+          log.info("username: {}", event.username)
           // Register this connection with the broadcaster
           // We do this AFTER handshake has been completed so that the server does not send data to client until
           // after the client gets a handshake response
-          webSocketBroadcaster ! new WebSocketBroadcasterRegistration(event)
+          lobbyWebSocketBroadcaster ! new WebSocketBroadcasterRegistration(event)
         }))
 
+      }
+      //game
+      case PathSegments("game" :: id :: Nil) => {
+        gameWebSocketBroadcasterMap.get(id) match {
+          case Some(broadcaster) => {
+		        // To start Web Socket processing, we first have to authorize the handshake.
+		        // This is a security measure to make sure that web sockets can only be established at your specified end points.
+		        wsHandshake.authorize(onComplete = Some((event: WebSocketHandshakeEvent) => {
+		           broadcaster ! new WebSocketBroadcasterRegistration(event)
+		        	}))
+		        //TODO: add user to game
+          }
+          case None => {
+        	  log.info("Unrecognised game id '{}'", id)
+        	  //TODO: add user to game here?
+          }
+      	}
       }
     }
 
     case WebSocketFrame(wsFrame) => {
       // Once handshaking has taken place, we can now process frames sent from the client
-      actorSystem.actorOf(Props(new WSHandler(game))) ! wsFrame
+      actorSystem.actorOf(Props(new GameWSHandler())) ! wsFrame
     }
 
   })
@@ -138,6 +158,6 @@ object BroadcastApp extends Logger {
     })
     webServer.start()
 
-    System.out.println("Open a few browsers and navigate to http://localhost:8888/html. Start chatting!")
+    System.out.println("Navigate to http://localhost:8888/. Multiple browsers will be available!")
   }
 }

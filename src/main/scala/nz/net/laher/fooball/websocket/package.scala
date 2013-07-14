@@ -1,3 +1,4 @@
+// This package originates from the socko examples. Keeping copyright and license accordingly
 //
 // Copyright 2012 Vibul Imtarnasan, David Bolton and Socko contributors.
 //

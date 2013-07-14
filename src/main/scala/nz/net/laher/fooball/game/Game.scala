@@ -3,6 +3,8 @@ package nz.net.laher.fooball.game
 import scala.collection.mutable.ListBuffer
 import scala.math
 import nz.net.laher.fooball.game.physics.Vector2D
+import nz.net.laher.fooball.message.MessageComponent
+import nz.net.laher.fooball.message.UserState
 
 case class MobileState(var position: Vector2D = new Vector2D(), var velocity : Vector2D = new Vector2D(), var acceleration : Vector2D = new Vector2D()) {
   def update(dt : Int) {
@@ -15,7 +17,15 @@ case class MobileState(var position: Vector2D = new Vector2D(), var velocity : V
     
   }
 }
-case class Player(number : Int, state : MobileState = MobileState())
+
+object Behaviour extends Enumeration {
+	type Behaviour = Value
+	val USER_CONTROLLED, AI_TOBASE, AI_ATTACK, AI_DEFEND = Value
+	//var x = IDLE
+}
+
+case class Player(number : Int = 0, state : MobileState = MobileState(), behaviour : Behaviour.Value = Behaviour.AI_TOBASE)
+
 case class Ball(state : MobileState = MobileState())
 case class Team(name : String, players : List[Player])
 
@@ -57,10 +67,5 @@ object Game {
   }
 }
 
-
-trait MessageComponent
-case class UserState(keysDown : ListBuffer[Int] = new ListBuffer[Int]()) extends MessageComponent
-case class UserInput(typ : String, value : Int) extends MessageComponent
-
-case class Message(components : List[MessageComponent])
-case class MessageOld(state: Option[UserState] = None, input: Option[UserInput] = None)
+case class GameMessage(id: String, components : List[MessageComponent])
+//case class MessageOld(state: Option[UserState] = None, input: Option[UserInput] = None)

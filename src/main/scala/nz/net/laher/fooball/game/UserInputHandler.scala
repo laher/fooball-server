@@ -7,16 +7,18 @@ import org.mashupbots.socko.events.HttpRequestEvent
 import nz.net.laher.fooball.serialization.Serializers
 import org.json4s.native.Serialization
 import org.mashupbots.socko.handlers.WebSocketBroadcastText
+import nz.net.laher.fooball.message.UserInput
+import nz.net.laher.fooball.message.UserState
 
 class UserInputHandler(game : Game) extends Actor {
   val log = Logging(context.system, UserInputHandler.this)
   
-
+		  
 /**
    * Process incoming events
    */
   def receive = {
-  	case m: Message =>
+  	case m: GameMessage =>
     log.info("Received input message - Message")
   	  m.components.foreach({ receive(_)})
     case event: UserInput =>

@@ -7,16 +7,14 @@ import org.json4s.native.Serialization.write
 import org.junit.runner.RunWith
 import org.scalatest.FunSpec
 import org.scalatest.junit.JUnitRunner
-import nz.net.laher.fooball.game.Message
-import nz.net.laher.fooball.game.MessageOld
-import nz.net.laher.fooball.game.UserInput
-import nz.net.laher.fooball.game.UserState
+import nz.net.laher.fooball.game.GameMessage
 import nz.net.laher.fooball.serialization.Serializers
-import nz.net.laher.fooball.game.UserState
 import scala.collection.mutable.MutableList
 import scala.collection.mutable.ListBuffer
 import nz.net.laher.fooball.game.Game
 import nz.net.laher.fooball.game.physics.Vector2D
+import nz.net.laher.fooball.message.UserInput
+import nz.net.laher.fooball.message.UserState
 
 @RunWith(classOf[JUnitRunner])
 class ExampleSpec extends FunSpec {
@@ -32,18 +30,16 @@ class ExampleSpec extends FunSpec {
 	    implicit var formats = Serialization.formats(NoTypeHints)
 	    var x= write(UserInput("kd", 1))
 	    assert(x === """{"typ":"kd","value":1}""")
-	    var y= write(MessageOld(input = Some(UserInput("kd", 1))))
-	    assert(y === s2)
 	    
 	    formats= Serialization.formats(ShortTypeHints(List(classOf[UserInput], classOf[UserState])))
-	    var z= write(Message(components = List(UserInput("kd", 1), UserInput("kd", 2))))
+	    var z= write(GameMessage("1", components = List(UserInput("kd", 1), UserInput("kd", 2))))
 	    println(z)
 	    assert(z === s3)
     }
     
     it("should use field serializers") {
       implicit var formats= Serializers.defaultFormats 
-      var z= write(Message(components = List(UserInput("kd", 1), UserInput("ku", 2), UserState(ListBuffer[Int](1,2,3)))))
+      var z= write(GameMessage("1", components = List(UserInput("kd", 1), UserInput("ku", 2), UserState(ListBuffer[Int](1,2,3)))))
 	  println(z)
       var y= write(List(UserInput("kd", 1), UserInput("ku", 2), UserState(ListBuffer[Int](1,2,3))))
 	  println(y)
@@ -56,8 +52,6 @@ class ExampleSpec extends FunSpec {
     
     it("should deserialise a Message, UserInput and Vector") {
 	    implicit val formats = Serialization.formats(NoTypeHints)
-	    var message = Serialization.read[MessageOld]("""{,"input":"""+sample+"}")
-	    assert(message === MessageOld(input = Some(UserInput("kd", 1))))
 	    
 	    var input = read[UserInput](sample)
     	assert(input === UserInput("kd", 1))
