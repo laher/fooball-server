@@ -30,7 +30,7 @@ class LobbyLoopHandler extends Actor {
   def receive = {
   	case m: LobbyMessage =>
   	  log.info("received message {}", m)
-  	  m.components.foreach({ receive(_)})
+  	  m.components.foreach({ receive(_) })
     case s : Start => {
       if (!running) {
         log.info("start!")
@@ -48,12 +48,19 @@ class LobbyLoopHandler extends Actor {
       }
     }
     case NewGame(id) => {
-      var g= Game.newGame(id)
+      val g= Game.newGame(id)
+      if(games.map({ _.id }).contains(id)) {
+        //already
+        log.error("Game {} already exists", id)
+      } else {
+      log.info("New game with id {}",id)
       //start actor
-      context.actorOf(Props(new GameLoopHandler(g)), GameLoopHandler.actorRefPart+"/"+id)
+      context.actorOf(Props(new GameLoopHandler(g)), GameLoopHandler.actorRefPart+id)
       //start broadcaster
-      context.actorOf(Props[WebSocketBroadcaster], GameWSHandler.broadcasterRefPart+"/"+id)
+      log.info("Creating broadcaster at {}", GameWSHandler.broadcasterRefPart+id)
+      context.actorOf(Props[WebSocketBroadcaster], GameWSHandler.broadcasterRefPart+id)
       games+= g
+      }
     }
   	case _ =>
   	  log.info("received unknown message of type: {}", (AnyRef)_)

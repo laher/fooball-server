@@ -9,7 +9,7 @@
 
 		<h3>Output</h3>
 		<div>
-		<div style='float:left'>
+		<div style='float:left;border:1px solid blue'>
 		<div>
 			<input type="button" value="Connect Lobby" onclick="connectLobby()" /> 
 			<input type="button" value="Disconnect Lobby" onclick="lobbySocket.close();" />
@@ -20,7 +20,7 @@
 				<option>joinGame</option>
 			</select>
 			<input
-				type="text" name="lobbyMessage" id="message" value='' /> 
+				type="text" name="lobbyMessage" id="lobbyMessage" value='' /> 
 			<input
 				type="button" value="Send" onclick="FOOBALL.wsclient.send(lobbySocket, this.form.lobbyMessage.value)" />
 		</div>
@@ -28,7 +28,7 @@
 		<br>
 		<textarea id="lobbyResponseText" style="width: 500px; height: 200px;"></textarea>
 		</div>
-		<div>
+		<div style="border:1px solid green">
 		<div>
 		<input type="button" value="Connect Game" onclick="connectGame();" /> 
 		<input type="button" value="Disconnect Game" onclick="gameSocket.close();" /> 
@@ -40,7 +40,7 @@
 				<option>move</option>
 			</select>
 			<input
-				type="button" value="Send" onclick="FOOBALL.wsclient.send(lobbySocket, this.form.message.value)" />
+				type="button" value="Send" onclick="FOOBALL.wsclient.send(gameSocket, this.form.message.value)" />
 		</div>
 		Game output
 		<br>

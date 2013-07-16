@@ -40,6 +40,7 @@ import org.mashupbots.socko.events.HttpResponseMessage
 import akka.actor.ActorRef
 import nz.net.laher.fooball.lobby.LobbyLoopHandler
 import nz.net.laher.fooball.message.Start
+import nz.net.laher.fooball.websocket.GameWSHandler
 
 /**
  * Fooball app.
@@ -129,20 +130,16 @@ object FooballServerApp extends Logger {
       }
       //game
       case PathSegments("game" :: id :: Nil) => {
-        gameWebSocketBroadcasterMap.get(id) match {
-          case Some(broadcaster) => {
-		        // To start Web Socket processing, we first have to authorize the handshake.
-		        // This is a security measure to make sure that web sockets can only be established at your specified end points.
-		        wsHandshake.authorize(onComplete = Some((event: WebSocketHandshakeEvent) => {
-		           broadcaster ! new WebSocketBroadcasterRegistration(event)
-		        	}))
+        val address= "/user/" + LobbyLoopHandler.actorRef + "/" + GameWSHandler.broadcasterRefPart + id
+        log.debug("Registering with broadcaster at {}", address)
+        val broadcaster= actorSystem.actorFor(address)
+        // To start Web Socket processing, we first have to authorize the handshake.
+        // This is a security measure to make sure that web sockets can only be established at your specified end points.
+        wsHandshake.authorize(onComplete = Some((event: WebSocketHandshakeEvent) => {
+           broadcaster ! new WebSocketBroadcasterRegistration(event)
+        	}))
 		        //TODO: add user to game
-          }
-          case _ => {
-        	  log.info("Unrecognised game id '{}'", id)
-        	  //TODO: add user to game here?
-          }
-      	}
+      	
       }
     }
 

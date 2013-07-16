@@ -8,11 +8,12 @@ import org.json4s.native.Serialization
 import nz.net.laher.fooball.message.MessageComponent
 import nz.net.laher.fooball.message.UserInput
 import nz.net.laher.fooball.message.UserState
+import nz.net.laher.fooball.websocket.GameWSHandler
 
 case class GameMessage(id: String, components : List[MessageComponent])
 
 object GameLoopHandler {
-  val actorRefPart= "GameLoopHandler"
+  val actorRefPart= "GameLoopHandler_"
 }
 class GameLoopHandler(game : Game) extends Actor {
   val log = Logging(context.system, GameLoopHandler.this)
@@ -26,6 +27,8 @@ class GameLoopHandler(game : Game) extends Actor {
   	case m: GameMessage =>
   	  log.info("received message {}", m)
   	  m.components.foreach({ processInput(_)})
+  	case mc : MessageComponent =>
+  	  processInput(mc)
   	case _ =>
   	  log.info("received unknown message of type: {}", (AnyRef)_)
   }
@@ -104,7 +107,8 @@ class GameLoopHandler(game : Game) extends Actor {
    */
   private def writeWebSocketResponseBroadcast(view: GameView) {
     log.info("Sending response")
-    val broadcaster = context.actorFor("/user/webSocketBroadcaster")
+    //todo
+    val broadcaster = context.actorFor("/user/"+GameWSHandler.actorRef+"1")
     implicit val formats= Serializers.defaultFormats
     val t = Serialization.write(view)
     broadcaster ! WebSocketBroadcastText(t)

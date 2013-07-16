@@ -34,7 +34,11 @@ import nz.net.laher.fooball.game.GameMessage
 import nz.net.laher.fooball.serialization.Serializers
 import nz.net.laher.fooball.game.GameView
 import nz.net.laher.fooball.game.GameLoopHandler
-
+import nz.net.laher.fooball.lobby.LobbyLoopHandler
+object GameWSHandler {
+  val actorRef= ""
+  val broadcasterRefPart = "GameWebSocketBroadcaster_"
+}
 /**
  * Web Socket processor for fooball input
  */
@@ -63,7 +67,8 @@ class GameWSHandler(id : String) extends Actor {
     var message = read[GameMessage](event.readText)
     log.info("Received "+message)
     
-    val inputHandler = context.actorFor("/user/"+GameLoopHandler.actorRefPart+"/"+id)
+     val address= "/user/" + LobbyLoopHandler.actorRef + "/" + GameLoopHandler.actorRefPart + id
+    val inputHandler = context.actorFor(address)
     message.components.foreach({ inputHandler ! _ })
   }
   
@@ -74,7 +79,7 @@ class GameWSHandler(id : String) extends Actor {
     val dateFormatter = new SimpleDateFormat("HH:mm:ss")
     val time = new GregorianCalendar()
     val ts = dateFormatter.format(time.getTime())
-    val broadcaster = context.actorFor("/user/webSocketBroadcaster")
+    val broadcaster = context.actorFor("/user/"+ LobbyLoopHandler.actorRef + "/" +GameWSHandler.broadcasterRefPart+id)
     /*
     //implicit val formats= Serializers.defaultFormats
     implicit val formats= Serializers.defaultFormats
@@ -82,6 +87,8 @@ class GameWSHandler(id : String) extends Actor {
     */
     broadcaster ! WebSocketBroadcastText(ts + " received OK")
   }
+  
+  //deprecated
   private def writeWebSocketResponseDirect(event: WebSocketFrameEvent) {
 	    log.info("TextWebSocketFrame: " + event.readText)
 
