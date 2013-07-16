@@ -34,9 +34,10 @@ import nz.net.laher.fooball.game.GameMessage
 import nz.net.laher.fooball.serialization.Serializers
 import nz.net.laher.fooball.game.GameView
 import nz.net.laher.fooball.lobby.LobbyMessage
+import nz.net.laher.fooball.lobby.LobbyLoopHandler
 object LobbyWSHandler {
   val actorRef= ""
-  val broadcasterRef = "lobbyWebSocketBroadcaster"
+  val broadcasterRef = "LobbyWebSocketBroadcaster"
 }
 /**
  * Web Socket processor for fooball input
@@ -65,7 +66,7 @@ class LobbyWSHandler extends Actor {
     implicit val formats = Serializers.longFormats
     var message = read[LobbyMessage](event.readText)
     log.info("Received "+message)
-    val inputHandler = context.actorFor("/user/LobbyLoopHandler")
+    val inputHandler = context.actorFor("/user/" + LobbyLoopHandler.actorRef)
     message.components.foreach({ inputHandler ! _ })
   }
   
@@ -74,7 +75,7 @@ class LobbyWSHandler extends Actor {
     val dateFormatter = new SimpleDateFormat("HH:mm:ss")
     val time = new GregorianCalendar()
     val ts = dateFormatter.format(time.getTime())
-    val broadcaster = context.actorFor("/user/webSocketBroadcaster")
+    val broadcaster = context.actorFor("/user/" + LobbyWSHandler.broadcasterRef)
     /*
     //implicit val formats= Serializers.defaultFormats
     implicit val formats= Serializers.defaultFormats
@@ -82,13 +83,12 @@ class LobbyWSHandler extends Actor {
     */
     broadcaster ! WebSocketBroadcastText(ts + " received OK")
   }
+  //write direct ..
   private def writeWebSocketResponseDirect(event: WebSocketFrameEvent) {
 	    log.info("TextWebSocketFrame: " + event.readText)
-
 	    val dateFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
 	    val time = new GregorianCalendar()
 	    val ts = dateFormatter.format(time.getTime())
-	    val inputHandler = context.actorFor("/user/userInputHandler")
 	    event.writeText(ts + " " + event.readText.toUpperCase())
 	  }
 }

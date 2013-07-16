@@ -1,54 +1,79 @@
-
-<html><head><title>Fooball-server test page</title></head>
+<html>
+<head>
+<title>Fooball-server test page</title>
+</head>
 <body>
-<script type="text/javascript">
-  var socket;
-  if (!window.WebSocket) {
-    window.WebSocket = window.MozWebSocket;
-  }
-  function connect() {
-	  if (window.WebSocket) {
-	    socket = new WebSocket("ws://localhost:8888/websocket/");
-	    socket.onmessage = function(event) { var ta = document.getElementById('responseText'); ta.value = ta.value + event.data + '\n'; ta.scrollTop = ta.scrollHeight; };
-	    socket.onopen = function(event) { var ta = document.getElementById('responseText'); ta.value = ta.value + "Web Socket opened!\n"; ta.scrollTop = ta.scrollHeight; };
-	    socket.onclose = function(event) { var ta = document.getElementById('responseText'); ta.value = ta.value + "Web Socket closed\n"; ta.scrollTop = ta.scrollHeight; };
-	   } else { 
-	    alert("Your browser does not support Web Sockets.");
+	<h1>Fooball-server test page</h1>
+	<form onsubmit="return false;">
+			 
+
+		<h3>Output</h3>
+		<div>
+		<div style='float:left'>
+		<div>
+			<input type="button" value="Connect Lobby" onclick="connectLobby()" /> 
+			<input type="button" value="Disconnect Lobby" onclick="lobbySocket.close();" />
+			<select
+				onchange="this.form.lobbyMessage.value=getMessage(this.options[this.selectedIndex].value)">
+				<option></option>
+				<option>newGame</option>
+				<option>joinGame</option>
+			</select>
+			<input
+				type="text" name="lobbyMessage" id="message" value='' /> 
+			<input
+				type="button" value="Send" onclick="FOOBALL.wsclient.send(lobbySocket, this.form.lobbyMessage.value)" />
+		</div>
+		output
+		<br>
+		<textarea id="lobbyResponseText" style="width: 500px; height: 200px;"></textarea>
+		</div>
+		<div>
+		<div>
+		<input type="button" value="Connect Game" onclick="connectGame();" /> 
+		<input type="button" value="Disconnect Game" onclick="gameSocket.close();" /> 
+			<input
+				type="text" name="message" id="message" value='' /> 
+		<select name="choose" id="choose"
+				onchange="this.form.message.value=getMessage(this.options[this.selectedIndex].value)">
+				<option></option>
+				<option>move</option>
+			</select>
+			<input
+				type="button" value="Send" onclick="FOOBALL.wsclient.send(lobbySocket, this.form.message.value)" />
+		</div>
+		Game output
+		<br>
+		<textarea id="gameResponseText" style="width: 500px; height: 200px;"></textarea>
+		</div>
+		</div>
+	</form>
+	<script type="text/javascript" src="fooball-wsclient.js"></script>
+	<script>
+	  var lobbySocket;
+	  var gameSocket;
+	  function connectLobby() {
+	    var url= "ws://localhost:8888/lobby";
+	    var ta = document.getElementById('lobbyResponseText');
+	    lobbySocket = FOOBALL.wsclient.connectDefault(url, ta);
 	  }
-  }
-  function disconnect() {
-  	socket.close();
-  }
-  function send(message) {
-    if (!window.WebSocket) { return; }
-    if (socket.readyState == WebSocket.OPEN) {
-      socket.send(message);
-    } else {
-      alert("The socket is not open.");
-    }
-  }
-  function getMessage(name) {
-   console.log(name)
-  	if(name=="move") {
-  		return JSON.stringify({components:[{jsonClass: "UserInput", "typ": "kd", "value": 1}]});
-  	} else {
-  		return "";
-  	}
-  }
-</script>
-<h1>Fooball-server test page</h1>
-<form onsubmit="return false;">
-  <input type="button" value="Connect" onclick="connect()" />
-  <input type="button" value="Disconnect" onclick="disconnect()" />
-  <input type="text" name="message" id="message" value=''/>
-  <input type="button" value="Send" onclick="send(this.form.message.value)" />
-  <select name="choose" id="choose" onchange="this.form.message.value=getMessage(this.options[this.selectedIndex].value)">
-  	<option></option>
-  	<option>move</option>
-  </select>
-  
-  <h3>Output</h3>
-  <textarea id="responseText" style="width: 500px; height:300px;"></textarea>
-</form>
+	  function connectGame() {
+	    var url= "ws://localhost:8888/game/1";
+	    var ta = document.getElementById('gameResponseText');
+	    gameSocket = FOOBALL.wsclient.connectDefault(url, ta);
+	  }
+      function getMessage(name) {
+	   console.log(name);
+	  	if(name=="move") {
+	  		return JSON.stringify({id: "1", components:[{jsonClass: "UserInput", "typ": "kd", "value": 1}]});
+	  	} else if(name=="newGame") {
+	  		return JSON.stringify({components:[{jsonClass: "NewGame", "id": "1"}]});
+	  	} else if(name=="newGame") {
+	  		return JSON.stringify({components:[{jsonClass: "JoinGame", "id": "1"}]});
+	  	} else {
+	  		return "";
+	  	}
+	  }
+	</script>
 </body>
 </html>

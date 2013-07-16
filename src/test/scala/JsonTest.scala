@@ -46,7 +46,7 @@ class ExampleSpec extends FunSpec {
     }
     it("should serialise a Game") {
       implicit var formats= Serializers.defaultFormats 
-      var z= write(Game.newGame())
+      var z= write(Game.newGame("1"))
       println(z)
     }
     

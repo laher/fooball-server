@@ -33,11 +33,12 @@ import nz.net.laher.fooball.game.Game
 import nz.net.laher.fooball.game.GameMessage
 import nz.net.laher.fooball.serialization.Serializers
 import nz.net.laher.fooball.game.GameView
+import nz.net.laher.fooball.game.GameLoopHandler
 
 /**
  * Web Socket processor for fooball input
  */
-class GameWSHandler extends Actor {
+class GameWSHandler(id : String) extends Actor {
   val log = Logging(context.system, GameWSHandler.this)
   
   /**
@@ -61,9 +62,13 @@ class GameWSHandler extends Actor {
     implicit val formats = Serializers.longFormats
     var message = read[GameMessage](event.readText)
     log.info("Received "+message)
-    val inputHandler = context.actorFor("/user/GameLoopHandler/"+message.id)
+    
+    val inputHandler = context.actorFor("/user/"+GameLoopHandler.actorRefPart+"/"+id)
     message.components.foreach({ inputHandler ! _ })
   }
+  
+  //hmm
+  
   private def writeWebSocketResponseBroadcast(event: WebSocketFrameEvent) {
     log.info("TextWebSocketFrame: " + event.readText)
     val dateFormatter = new SimpleDateFormat("HH:mm:ss")

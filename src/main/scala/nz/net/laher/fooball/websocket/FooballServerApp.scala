@@ -38,6 +38,8 @@ import akka.routing.FromConfig
 import org.mashupbots.socko.handlers.StaticFileRequest
 import org.mashupbots.socko.events.HttpResponseMessage
 import akka.actor.ActorRef
+import nz.net.laher.fooball.lobby.LobbyLoopHandler
+import nz.net.laher.fooball.message.Start
 
 /**
  * Fooball app.
@@ -51,7 +53,7 @@ import akka.actor.ActorRef
  *
  *  Navigate to `http://localhost:8888/`.
  */
-object BroadcastApp extends Logger {
+object FooballServerApp extends Logger {
 	val games = Map[String,Game]()
     val actorConfig = """
       my-pinned-dispatcher {
@@ -73,16 +75,20 @@ object BroadcastApp extends Logger {
   val actorSystem = ActorSystem("FooBallSystem", ConfigFactory.parseString(actorConfig))
   //val userInputHandler = actorSystem.actorOf(Props(new UserInputHandler(game)), "userInputHandler")
   
-  val contentDir = new File(".").getAbsolutePath() + "/src/main/web/"
-    val handlerConfig = StaticContentHandlerConfig(
+  //TODO overrideable at startup ..
+  val contentDir = new File("src/main/web/").getAbsolutePath()
+  
+  val handlerConfig = StaticContentHandlerConfig(
       rootFilePaths = Seq(contentDir),
-      tempDir = new File("/tmp/"))
+      tempDir = new File("/tmp/"),
+      serverCacheTimeoutSeconds = 10)
       
   val staticContentHandlerRouter = actorSystem.actorOf(Props(new StaticContentHandler(handlerConfig))
       .withRouter(FromConfig()).withDispatcher("my-pinned-dispatcher"), "static-file-router")
 
   val lobbyWebSocketBroadcaster = actorSystem.actorOf(Props[WebSocketBroadcaster], LobbyWSHandler.broadcasterRef)
-  val gameWebSocketBroadcasterMap = Map[String,ActorRef]()
+  
+  val lobbyLoopHandler = actorSystem.actorOf(Props[LobbyLoopHandler], LobbyLoopHandler.actorRef)
       //
   // STEP #2 - Define Routes
   // Each route dispatches the request to a newly instanced `WebSocketHandler` actor for processing.
@@ -132,7 +138,7 @@ object BroadcastApp extends Logger {
 		        	}))
 		        //TODO: add user to game
           }
-          case None => {
+          case _ => {
         	  log.info("Unrecognised game id '{}'", id)
         	  //TODO: add user to game here?
           }
@@ -140,9 +146,20 @@ object BroadcastApp extends Logger {
       }
     }
 
-    case WebSocketFrame(wsFrame) => {
-      // Once handshaking has taken place, we can now process frames sent from the client
-      actorSystem.actorOf(Props(new GameWSHandler())) ! wsFrame
+    case WebSocketFrame(wsFrame) => wsFrame match {
+      case Path("/lobby") => {
+    	  // Once handshaking has taken place, we can now process frames sent from the client
+    	  actorSystem.actorOf(Props(new LobbyWSHandler())) ! wsFrame
+      }
+      case PathSegments("game" :: id :: Nil) => {
+    	  // Once handshaking has taken place, we can now process frames sent from the client
+    	  actorSystem.actorOf(Props(new GameWSHandler(id))) ! wsFrame
+      }
+      case _ => {
+              log.error("Unhandled endpoint: {}", wsFrame.endPoint)
+
+      }
+      
     }
 
   })
@@ -151,13 +168,13 @@ object BroadcastApp extends Logger {
   // STEP #3 - Start and Stop Socko Web Server
   //
   def main(args: Array[String]) {
-    
     val webServer = new WebServer(WebServerConfig(), routes, actorSystem)
     Runtime.getRuntime.addShutdownHook(new Thread {
       override def run { webServer.stop() }
     })
     webServer.start()
-
-    System.out.println("Navigate to http://localhost:8888/. Multiple browsers will be available!")
+    val inputHandler = actorSystem.actorFor("/user/" + LobbyLoopHandler.actorRef)
+    inputHandler ! Start()
+    System.out.println("Navigate to http://localhost:8888/ to start playing")
   }
 }

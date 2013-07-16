@@ -9,6 +9,11 @@ import nz.net.laher.fooball.message.MessageComponent
 import nz.net.laher.fooball.message.UserInput
 import nz.net.laher.fooball.message.UserState
 
+case class GameMessage(id: String, components : List[MessageComponent])
+
+object GameLoopHandler {
+  val actorRefPart= "GameLoopHandler"
+}
 class GameLoopHandler(game : Game) extends Actor {
   val log = Logging(context.system, GameLoopHandler.this)
   
