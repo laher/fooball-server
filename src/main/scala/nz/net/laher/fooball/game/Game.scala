@@ -2,7 +2,7 @@ package nz.net.laher.fooball.game
 
 import scala.collection.mutable.ListBuffer
 import scala.math
-import nz.net.laher.fooball.game.physics.Vector2D
+import nz.net.laher.fooball.physics.Vector2D
 import nz.net.laher.fooball.message.MessageComponent
 import nz.net.laher.fooball.message.UserState
 

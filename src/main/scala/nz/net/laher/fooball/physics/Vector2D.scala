@@ -1,4 +1,5 @@
-package nz.net.laher.fooball.game.physics
+package nz.net.laher.fooball.physics
+
 
 class Vector2D(angle: Double = 0, magnitude: Double = 0) {
   def this(xy: Tuple2[Double, Double]) {

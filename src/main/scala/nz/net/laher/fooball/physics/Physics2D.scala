@@ -1,4 +1,4 @@
-package nz.net.laher.fooball.game.physics
+package nz.net.laher.fooball.physics
 
 object Physics2D {
 

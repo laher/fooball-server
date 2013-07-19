@@ -12,7 +12,7 @@ import nz.net.laher.fooball.serialization.Serializers
 import scala.collection.mutable.MutableList
 import scala.collection.mutable.ListBuffer
 import nz.net.laher.fooball.game.Game
-import nz.net.laher.fooball.game.physics.Vector2D
+import nz.net.laher.fooball.physics.Vector2D
 import nz.net.laher.fooball.message.UserInput
 import nz.net.laher.fooball.message.UserState
 
