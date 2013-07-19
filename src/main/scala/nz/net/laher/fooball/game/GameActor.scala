@@ -8,15 +8,14 @@ import org.json4s.native.Serialization
 import nz.net.laher.fooball.message.MessageComponent
 import nz.net.laher.fooball.message.UserInput
 import nz.net.laher.fooball.message.UserState
-import nz.net.laher.fooball.websocket.GameWSHandler
 
 case class GameMessage(id: String, components : List[MessageComponent])
 
-object GameLoopHandler {
-  val actorRefPart= "GameLoopHandler_"
+object GameActor {
+  val actorRefPart= "GameActor_"
 }
-class GameLoopHandler(game : Game) extends Actor {
-  val log = Logging(context.system, GameLoopHandler.this)
+class GameActor(game : Game) extends Actor {
+  val log = Logging(context.system, GameActor.this)
   
   var running=false
 
@@ -50,7 +49,7 @@ class GameLoopHandler(game : Game) extends Actor {
         //update 
 		var user= game.users(0)
 		user.state.keysDown.clear()
- 		state.keysDown.foreach({ user.state.keysDown. += _ })
+ 		state.keysDown.foreach({ user.state.keysDown += _ })
  		Game.view(game)
 
        }
@@ -108,7 +107,7 @@ class GameLoopHandler(game : Game) extends Actor {
   private def writeWebSocketResponseBroadcast(view: GameView) {
     log.info("Sending response")
     //todo
-    val broadcaster = context.actorFor("/user/"+GameWSHandler.actorRef+"1")
+    val broadcaster = context.actorFor("/user/"+GameWSActor.actorRef+"1")
     implicit val formats= Serializers.defaultFormats
     val t = Serialization.write(view)
     broadcaster ! WebSocketBroadcastText(t)

@@ -14,11 +14,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-package nz.net.laher.fooball.websocket
+package nz.net.laher.fooball.lobby
 
 import java.text.SimpleDateFormat
 import java.util.GregorianCalendar
-import org.mashupbots.socko.events.HttpRequestEvent
 import org.mashupbots.socko.events.WebSocketFrameEvent
 import org.mashupbots.socko.handlers.WebSocketBroadcastText
 import akka.actor.actorRef2Scala
@@ -26,24 +25,18 @@ import akka.actor.Actor
 import akka.event.Logging
 import org.json4s._
 import org.json4s.native.JsonMethods._
-import org.json4s.native.Serialization
-import org.json4s.native.Serialization.{read,write,formats}
-import nz.net.laher.fooball.game.UserInputHandler
-import nz.net.laher.fooball.game.Game
-import nz.net.laher.fooball.game.GameMessage
+import org.json4s.native.Serialization.read
 import nz.net.laher.fooball.serialization.Serializers
-import nz.net.laher.fooball.game.GameView
-import nz.net.laher.fooball.game.GameLoopHandler
-import nz.net.laher.fooball.lobby.LobbyLoopHandler
-object GameWSHandler {
+
+object LobbyWSActor {
   val actorRef= ""
-  val broadcasterRefPart = "GameWebSocketBroadcaster_"
+  val broadcasterRef = "LobbyWebSocketBroadcaster"
 }
 /**
  * Web Socket processor for fooball input
  */
-class GameWSHandler(id : String) extends Actor {
-  val log = Logging(context.system, GameWSHandler.this)
+class LobbyWSActor extends Actor {
+  val log = Logging(context.system, LobbyWSActor.this)
   
   /**
    * Process incoming events
@@ -64,22 +57,18 @@ class GameWSHandler(id : String) extends Actor {
     log.info("TextWebSocketFrame: ." + event.readText + ".")
     //implicit val formats = Serialization.formats(ShortTypeHints(List(classOf[UserInput], classOf[UserState])))
     implicit val formats = Serializers.longFormats
-    var message = read[GameMessage](event.readText)
+    var message = read[LobbyMessage](event.readText)
     log.info("Received "+message)
-    
-     val address= "/user/" + LobbyLoopHandler.actorRef + "/" + GameLoopHandler.actorRefPart + id
-    val inputHandler = context.actorFor(address)
+    val inputHandler = context.actorFor("/user/" + LobbyActor.actorRef)
     message.components.foreach({ inputHandler ! _ })
   }
-  
-  //hmm
   
   private def writeWebSocketResponseBroadcast(event: WebSocketFrameEvent) {
     log.info("TextWebSocketFrame: " + event.readText)
     val dateFormatter = new SimpleDateFormat("HH:mm:ss")
     val time = new GregorianCalendar()
     val ts = dateFormatter.format(time.getTime())
-    val broadcaster = context.actorFor("/user/"+ LobbyLoopHandler.actorRef + "/" +GameWSHandler.broadcasterRefPart+id)
+    val broadcaster = context.actorFor("/user/" + LobbyWSActor.broadcasterRef)
     /*
     //implicit val formats= Serializers.defaultFormats
     implicit val formats= Serializers.defaultFormats
@@ -87,15 +76,12 @@ class GameWSHandler(id : String) extends Actor {
     */
     broadcaster ! WebSocketBroadcastText(ts + " received OK")
   }
-  
-  //deprecated
+  //write direct ..
   private def writeWebSocketResponseDirect(event: WebSocketFrameEvent) {
 	    log.info("TextWebSocketFrame: " + event.readText)
-
 	    val dateFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
 	    val time = new GregorianCalendar()
 	    val ts = dateFormatter.format(time.getTime())
-	    val inputHandler = context.actorFor("/user/userInputHandler")
 	    event.writeText(ts + " " + event.readText.toUpperCase())
 	  }
 }

@@ -13,3 +13,4 @@ case class Stop() extends MessageComponent
 
 case class NewGame(id: String) extends MessageComponent
 case class JoinGame(id: String) extends MessageComponent
+case object ListGames extends MessageComponent

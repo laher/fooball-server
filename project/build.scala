@@ -49,7 +49,7 @@ object SockoBuild extends Build {
   lazy val fooballServer = Project(id = "fooball-server",
                          base = file("."),
                          settings = defaultSettings ++ compileJdk7Settings ++ Seq(
-                           libraryDependencies ++= Seq(Dependency.socko, Dependency.json4sNative, Dependency.scalatest, Dependency.junit)
+                           libraryDependencies ++= Seq(Dependency.socko, Dependency.json4sNative, Dependency.scalatest, Dependency.junit, Dependency.testkit)
                          ))
 
 }
@@ -59,6 +59,8 @@ object Dependency {
   val json4sNative = "org.json4s" %% "json4s-native" % "3.2.4"
   val scalatest     = "org.scalatest" % "scalatest_2.10" % "1.9.1" % "test"
   val junit = "junit" % "junit" % "4.7" % "test"
+  val testkit = "com.typesafe.akka" % "akka-testkit_2.10" % "2.1.2"
+
 }
 
 
