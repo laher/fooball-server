@@ -29,7 +29,7 @@ import org.json4s.native.Serialization.read
 import nz.net.laher.fooball.serialization.Serializers
 
 object LobbyWSActor {
-  val actorRef= ""
+  val serializerRef =  "LobbySerializer"
   val broadcasterRef = "LobbyWebSocketBroadcaster"
 }
 /**

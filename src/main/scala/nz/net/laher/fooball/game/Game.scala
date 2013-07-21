@@ -2,6 +2,7 @@ package nz.net.laher.fooball.game
 
 import scala.collection.mutable.ListBuffer
 import scala.math
+import scala.util.Random
 import nz.net.laher.fooball.physics.Vector2D
 import nz.net.laher.fooball.message.MessageComponent
 import nz.net.laher.fooball.message.UserState
@@ -32,7 +33,7 @@ case class Team(name : String, players : List[Player])
 case class User(teamname : String, selected: Int, state: UserState = UserState())
 case class Score(s1 : Int = 0, s2 : Int = 0)
 
-case class Game(id: String, teams : Tuple2[Team,Team], users : List[User], ball : Ball, score : Score = Score()) {
+case class Game(id: String, seed: Int, start : Long, elapsed : Long = 0, teams : Tuple2[Team,Team], users : List[User], ball : Ball, score : Score = Score()) extends MessageComponent {
   def team(name : String) : Option[Team] = {
     if (teams._1.name.equals(name)) {
       Some(teams._1)
@@ -46,7 +47,7 @@ case class Game(id: String, teams : Tuple2[Team,Team], users : List[User], ball 
     List(teams._1, teams._2)
   }
 }
-case class GameView(team1 : Option[Team] = None, team2 : Option[Team] = None, users : Option[List[User]] = None, ball : Option[Ball] = None, score : Option[Ball] = None)
+case class GameView(id : Option[String], seed : Option[Int] = None,  start : Option[Long], elapsed : Option[Long], teams : Option[Tuple2[Team,Team]] = None, users : Option[List[User]] = None, ball : Option[Ball] = None, score : Option[Ball] = None)
 
 object Game {
   def newPlayers11() : List[Player] = {
@@ -55,16 +56,17 @@ object Game {
   def newGame(gameName : String, team1Name : String, team2Name : String) : Game = {
     val team1 = Team(team1Name, newPlayers11())
     val team2 = Team(team2Name, newPlayers11())
-    Game(gameName, Tuple2(team1, team2), List(User(team1Name, 1)), Ball())
+    val seed = new Random().nextInt //random seed :)
+    Game(gameName, seed, new java.util.Date().getTime, 0, Tuple2(team1, team2), List(User(team1Name, 1)), Ball())
   }
   def newGame(gameName : String) : Game = {
     newGame(gameName, "1","2")
   }
-  
+  def initView(game: Game) : GameView = {
+    GameView(Some(game.id), Some(game.seed), Some(game.start), Some(game.elapsed), Some(game.teams))
+  }
   def view(game: Game) : GameView = {
     //todo: slice up game based on relevant changes
-    GameView(Some(Team(game.teams._1.name, List(Player(1)))))
+    GameView(Some(game.id), Some(game.seed), Some(game.start), Some(game.elapsed))
   }
 }
-
-//case class MessageOld(state: Option[UserState] = None, input: Option[UserInput] = None)

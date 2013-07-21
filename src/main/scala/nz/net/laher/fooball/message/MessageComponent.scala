@@ -10,6 +10,7 @@ case class UserInput(typ : String, value : Int) extends MessageComponent
 
 case class Start() extends MessageComponent
 case class Stop() extends MessageComponent
+case class Status(full : Boolean) extends MessageComponent
 
 case class NewGame(id: String) extends MessageComponent
 case class JoinGame(id: String) extends MessageComponent
