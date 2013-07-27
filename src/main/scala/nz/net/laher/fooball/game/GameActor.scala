@@ -101,13 +101,10 @@ class GameActor(game : Game) extends Actor {
 	    }
 	  }
   }
- /**
-   * Echo the details of the web socket frame that we just received; but in upper case.
-   */
   private def writeWebSocketResponseBroadcast(view: GameView) {
     log.info("Sending response")
     //todo
-    val broadcaster = context.actorFor("/user/"+GameWSActor.actorRef+"1")
+    val broadcaster = context.actorFor("/user/"+GameWSActor.broadcasterRefPart+game.id)
     implicit val formats= Serializers.defaultFormats
     val t = Serialization.write(view)
     broadcaster ! WebSocketBroadcastText(t)

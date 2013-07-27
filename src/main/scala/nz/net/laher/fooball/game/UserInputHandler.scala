@@ -10,6 +10,7 @@ import org.mashupbots.socko.handlers.WebSocketBroadcastText
 import nz.net.laher.fooball.message.UserInput
 import nz.net.laher.fooball.message.UserState
 
+@Deprecated
 class UserInputHandler(game : Game) extends Actor {
   val log = Logging(context.system, UserInputHandler.this)
   

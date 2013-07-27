@@ -16,20 +16,14 @@ import org.json4s.native.Serialization
 import org.mashupbots.socko.handlers.WebSocketBroadcastText
 import nz.net.laher.fooball.message.ListGames
 import akka.testkit.TestProbe
- 
-object LobbyLoopSpec {
-  class EchoActor extends Actor {
-    def receive = {
-      case x ⇒ println(x)
-    }
-  }
-}
+
  
 @RunWith(classOf[JUnitRunner])
-class LobbyLoopSpec(_system: ActorSystem) extends TestKit(_system) with ImplicitSender
+class LobbyActorSpec(_system: ActorSystem) extends TestKit(_system) with ImplicitSender
   with WordSpec with MustMatchers with BeforeAndAfterAll {
+//this_system
  
-  def this() = this(ActorSystem("LobbyLoopSpec"))
+  def this() = this(ActorSystem("LobbyActorSpec"))
  
   import MySpec._
  
@@ -37,7 +31,7 @@ class LobbyLoopSpec(_system: ActorSystem) extends TestKit(_system) with Implicit
     system.shutdown()
   }
  
-  "A LobbyLoop actor" must {
+  "A Lobby actor" must {
  
     "List games appropriately" in {
       val probe1 = TestProbe()

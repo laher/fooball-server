@@ -58,8 +58,11 @@ class LobbyActor(broadcaster : ActorRef) extends Actor {
       //start actor
       context.actorOf(Props(new GameActor(g)), GameActor.actorRefPart+id)
       //start broadcaster
-      log.info("Creating broadcaster at {}", GameWSActor.broadcasterRefPart+id)
+      log.info("Creating game broadcaster at {}", GameWSActor.broadcasterRefPart+id)
       context.actorOf(Props[WebSocketBroadcaster], GameWSActor.broadcasterRefPart+id)
+      //TODO receive user id. For now just use game id ..
+      log.info("Creating user broadcaster at {}", GameWSActor.userBroadcasterRefPart+id)
+      context.actorOf(Props[WebSocketBroadcaster], GameWSActor.userBroadcasterRefPart+id)
       games+= g
       }
     }

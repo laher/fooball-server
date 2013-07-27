@@ -20,7 +20,7 @@ object SockoBuild extends Build {
   lazy val defaultSettings = Defaults.defaultSettings ++ Seq(
     // Info
     organization := "nz.net.laher.fooball",
-    version      := "0.1.0",
+    version      := "0.1.1",
     scalaVersion := "2.10.1",
     organizationHomepage := Some(url("http://laher.net.nz")),
 
@@ -49,7 +49,7 @@ object SockoBuild extends Build {
   lazy val fooballServer = Project(id = "fooball-server",
                          base = file("."),
                          settings = defaultSettings ++ compileJdk7Settings ++ Seq(
-                           libraryDependencies ++= Seq(Dependency.socko, Dependency.json4sNative, Dependency.scalatest, Dependency.junit, Dependency.testkit)
+                           libraryDependencies ++= Seq(Dependency.socko, Dependency.json4sNative, Dependency.scalatest, Dependency.junit, Dependency.testkit, Dependency.typesafeConsole)
                          ))
 
 }
@@ -60,7 +60,8 @@ object Dependency {
   val scalatest     = "org.scalatest" % "scalatest_2.10" % "1.9.1" % "test"
   val junit = "junit" % "junit" % "4.7" % "test"
   val testkit = "com.typesafe.akka" % "akka-testkit_2.10" % "2.1.2"
-
+//  val simplex3d = "org.simplex3d" %% "simplex3d-engine-vanilla" % "0.3.4"
+  val typesafeConsole = "com.typesafe.atmos" % "trace-akka-2.1.4" % "1.2.0"
 }
 
 

@@ -114,7 +114,7 @@ object FooballServerApp extends Logger {
         httpRequest.response.write(HttpResponseStatus.NOT_FOUND)
       }
     }
-
+    //TODO: per-user broadcaster
     case WebSocketHandshake(wsHandshake) => wsHandshake match {
       //list games
       case Path("/lobby") => {
@@ -132,12 +132,15 @@ object FooballServerApp extends Logger {
       //game
       case PathSegments("game" :: id :: Nil) => {
         val address= "/user/" + LobbyActor.actorRef + "/" + GameWSActor.broadcasterRefPart + id
+        val userAddress= "/user/" + LobbyActor.actorRef + "/" + GameWSActor.userBroadcasterRefPart + id
         log.debug("Registering with broadcaster at {}", address)
-        val broadcaster= actorSystem.actorFor(address)
+        val gameBroadcaster= actorSystem.actorFor(address)
+        val userBroadcaster= actorSystem.actorFor(userAddress)
         // To start Web Socket processing, we first have to authorize the handshake.
         // This is a security measure to make sure that web sockets can only be established at your specified end points.
         wsHandshake.authorize(onComplete = Some((event: WebSocketHandshakeEvent) => {
-           broadcaster ! new WebSocketBroadcasterRegistration(event)
+           gameBroadcaster ! new WebSocketBroadcasterRegistration(event)
+           userBroadcaster ! new WebSocketBroadcasterRegistration(event)
         	}))
 		        //TODO: add user to game
       	

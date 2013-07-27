@@ -29,8 +29,8 @@ import org.json4s.native.Serialization.read
 import nz.net.laher.fooball.serialization.Serializers
 import nz.net.laher.fooball.lobby.LobbyActor
 object GameWSActor {
-  val actorRef= ""
   val broadcasterRefPart = "GameWebSocketBroadcaster_"
+  val userBroadcasterRefPart = "UserWebSocketBroadcaster_"
 }
 /**
  * Web Socket processor for fooball input
