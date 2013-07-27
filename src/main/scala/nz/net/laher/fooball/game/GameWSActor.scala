@@ -28,14 +28,18 @@ import org.json4s.native.JsonMethods._
 import org.json4s.native.Serialization.read
 import nz.net.laher.fooball.serialization.Serializers
 import nz.net.laher.fooball.lobby.LobbyActor
+import nz.net.laher.fooball.message.Status
+import org.json4s.native.Serialization
+
 object GameWSActor {
+  val serializerRefPart= "GameSerializer_"
   val broadcasterRefPart = "GameWebSocketBroadcaster_"
   val userBroadcasterRefPart = "UserWebSocketBroadcaster_"
 }
 /**
  * Web Socket processor for fooball input
  */
-class GameWSActor(id : String) extends Actor {
+class GameWSActor(id : String, game : Game) extends Actor {
   val log = Logging(context.system, GameWSActor.this)
   
   /**
@@ -45,7 +49,7 @@ class GameWSActor(id : String) extends Actor {
     case event: WebSocketFrameEvent =>
       handleInput(event)
       // Echo web socket text frames
-   	  writeWebSocketResponseBroadcast(event)
+   	  //writeWebSocketResponseBroadcast(event)
       context.stop(self)
     case _ => {
       log.info("received unknown message of type: {}",(AnyRef)_)
@@ -62,7 +66,18 @@ class GameWSActor(id : String) extends Actor {
     
      val address= "/user/" + LobbyActor.actorRef + "/" + GameActor.actorRefPart + id
     val inputHandler = context.actorFor(address)
-    message.components.foreach({ inputHandler ! _ })
+    message.components.foreach({ _ match {
+      //get only. TODO: create a type
+      case Status(full) => {
+        log.debug("Received a status message")
+        writeWebSocketResponseDirect(event, GameMessage(List(game)))
+      }
+      //put only
+      case _ => {
+        log.debug("Forwarding message to handler")
+      	inputHandler ! _ 
+      }
+    }})
   }
   
   //hmm
@@ -81,8 +96,8 @@ class GameWSActor(id : String) extends Actor {
     broadcaster ! WebSocketBroadcastText(ts + " received OK")
   }
   
-  //deprecated
-  private def writeWebSocketResponseDirect(event: WebSocketFrameEvent) {
+  private def writeWebSocketResponseDirect(event: WebSocketFrameEvent, message : GameMessage) {
+	  /*
 	    log.info("TextWebSocketFrame: " + event.readText)
 
 	    val dateFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
@@ -90,6 +105,10 @@ class GameWSActor(id : String) extends Actor {
 	    val ts = dateFormatter.format(time.getTime())
 	    val inputHandler = context.actorFor("/user/userInputHandler")
 	    event.writeText(ts + " " + event.readText.toUpperCase())
+	    */
+	    implicit val formats= Serializers.defaultFormats
+      	val t = Serialization.write(message)
+	    event.writeText(t)
 	  }
 }
 

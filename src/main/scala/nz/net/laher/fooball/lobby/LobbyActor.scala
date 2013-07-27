@@ -19,14 +19,14 @@ import org.mashupbots.socko.handlers.WebSocketBroadcaster
 import nz.net.laher.fooball.game.GameWSActor
 import akka.actor.ActorRef
 import nz.net.laher.fooball.message.ListGames
+import nz.net.laher.fooball.serialization.SerializationActor
 
 object LobbyActor {
   val actorRef= "LobbyActor"
 }
-class LobbyActor(broadcaster : ActorRef) extends Actor {
+class LobbyActor(broadcaster : ActorRef, games : collection.mutable.Map[String,Game]) extends Actor {
   val log = Logging(context.system, LobbyActor.this)
   var running = false
-  var games = ListBuffer[Game]()
   
   def receive = {
   	case m: LobbyMessage =>
@@ -50,8 +50,10 @@ class LobbyActor(broadcaster : ActorRef) extends Actor {
     }
     case NewGame(id) => {
       val g= Game.newGame(id)
-      if(games.map({ _.id }).contains(id)) {
+      games.get(id) match {
+        case Some(game) => {
         //already
+<<<<<<< HEAD
         log.error("Game {} already exists", id)
       } else {
       log.info("New game with id {}",id)
@@ -64,11 +66,26 @@ class LobbyActor(broadcaster : ActorRef) extends Actor {
       log.info("Creating user broadcaster at {}", GameWSActor.userBroadcasterRefPart+id)
       context.actorOf(Props[WebSocketBroadcaster], GameWSActor.userBroadcasterRefPart+id)
       games+= g
+=======
+        	log.error("Game {} already exists", id)
+        }
+        case None => {
+	      log.info("New game with id {}",id)
+	      log.info("Creating broadcaster at {}", GameWSActor.broadcasterRefPart+id)
+	      //start broadcaster
+	      val gameBroadcaster = context.actorOf(Props[WebSocketBroadcaster], GameWSActor.broadcasterRefPart+id)
+	      val serializationActor = context.actorOf(Props(new SerializationActor(gameBroadcaster)), GameWSActor.serializerRefPart+id)
+	      //start actor
+	      val gameActor = context.actorOf(Props(new GameActor(g, serializationActor)), GameActor.actorRefPart+id)
+	      games += id -> g
+	      gameActor ! new Start
+        }
+>>>>>>> 601f7ba5038b6a8f7d2fa99913de71186c268a6c
       }
     }
     case ListGames => {
-	    listGames
-    }
+    	broadcaster ! games.keys
+	}
   	case x : AnyRef =>
   	  log.info("received unknown message of type: {}", x.getClass())
   }
@@ -77,8 +94,7 @@ class LobbyActor(broadcaster : ActorRef) extends Actor {
     running=true
 	future {
 	  while (running) { 
-	    //go
-	    listGames
+	    broadcaster ! games.keys
 	    Thread.sleep(1000)
 	  }
 	}
@@ -86,13 +102,14 @@ class LobbyActor(broadcaster : ActorRef) extends Actor {
   
  /**
    * Echo the details of the web socket frame that we just received; but in upper case.
-   */
   private def listGames() {
     //log.info("Sending game list")
     //val broadcaster = context.actorFor("/user/"+LobbyWSHandler.broadcasterRef)
     implicit val formats= Serializers.defaultFormats
-    val t = Serialization.write(games.map({ _.id }))
+    val t = Serialization.write(games.keys)
     broadcaster ! WebSocketBroadcastText(t)
   }
+   */
+
 }
 case class LobbyMessage(components : List[MessageComponent])

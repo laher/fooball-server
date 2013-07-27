@@ -29,6 +29,7 @@ import akka.actor.ActorSystem
 import akka.actor.Props
 import akka.actor.actorRef2Scala
 import nz.net.laher.fooball.game.Game
+import nz.net.laher.fooball.game.GameActor
 import nz.net.laher.fooball.game.UserInputHandler
 import org.mashupbots.socko.handlers.StaticContentHandler
 import org.mashupbots.socko.handlers.StaticContentHandlerConfig
@@ -42,6 +43,7 @@ import nz.net.laher.fooball.lobby.LobbyActor
 import nz.net.laher.fooball.message.Start
 import nz.net.laher.fooball.game.GameWSActor
 import nz.net.laher.fooball.lobby.LobbyWSActor
+import nz.net.laher.fooball.serialization.SerializationActor
 
 /**
  * Fooball app.
@@ -56,7 +58,7 @@ import nz.net.laher.fooball.lobby.LobbyWSActor
  *  Navigate to `http://localhost:8888/`.
  */
 object FooballServerApp extends Logger {
-	val games = Map[String,Game]()
+	val games = collection.mutable.Map[String,Game]()
     val actorConfig = """
       my-pinned-dispatcher {
         type=PinnedDispatcher
@@ -89,8 +91,8 @@ object FooballServerApp extends Logger {
       .withRouter(FromConfig()).withDispatcher("my-pinned-dispatcher"), "static-file-router")
 
   val lobbyWebSocketBroadcaster = actorSystem.actorOf(Props[WebSocketBroadcaster], LobbyWSActor.broadcasterRef)
-  
-  val lobbyLoopHandler = actorSystem.actorOf(Props(new LobbyActor(lobbyWebSocketBroadcaster)), LobbyActor.actorRef)
+  val lobbySerializer = actorSystem.actorOf(Props(new SerializationActor(lobbyWebSocketBroadcaster)), LobbyWSActor.serializerRef)
+  val lobbyLoopHandler = actorSystem.actorOf(Props(new LobbyActor(lobbySerializer, games)), LobbyActor.actorRef)
       //
   // STEP #2 - Define Routes
   // Each route dispatches the request to a newly instanced `WebSocketHandler` actor for processing.
@@ -143,7 +145,8 @@ object FooballServerApp extends Logger {
            userBroadcaster ! new WebSocketBroadcasterRegistration(event)
         	}))
 		        //TODO: add user to game
-      	
+        //val aAddress= "/user/" + LobbyActor.actorRef + "/" + GameActor.actorRefPart + id
+      	//aAddress ! 
       }
     }
 
@@ -154,7 +157,14 @@ object FooballServerApp extends Logger {
       }
       case PathSegments("game" :: id :: Nil) => {
     	  // Once handshaking has taken place, we can now process frames sent from the client
-    	  actorSystem.actorOf(Props(new GameWSActor(id))) ! wsFrame
+    	  games.get(id) match {
+    	    case Some(game) => {
+    	    	actorSystem.actorOf(Props(new GameWSActor(id, game))) ! wsFrame
+    	    }
+    	    case None => {
+    	      log.error("Game doesnt exist")
+    	    }
+    	  }
       }
       case _ => {
               log.error("Unhandled endpoint: {}", wsFrame.endPoint)

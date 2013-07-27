@@ -7,42 +7,56 @@
 	<form onsubmit="return false;">
 			 
 
-		<h3>Output</h3>
+		<h3>API testing</h3>
 		<div>
-		<div style='float:left;border:1px solid blue'>
+		<div style='float:left;border:1px solid blue; padding: 5px'>
 		<div>
-			<input type="button" value="Connect Lobby" onclick="connectLobby()" /> 
-			<input type="button" value="Disconnect Lobby" onclick="lobbySocket.close();" />
+			<h3>Lobby</h3>
+			<input type="button" value="Connect" onclick="connectLobby()" /> 
+			<input type="button" value="Disconnect" onclick="lobbySocket.close();" />
 			<select
 				onchange="this.form.lobbyMessage.value=getMessage(this.options[this.selectedIndex].value)">
 				<option></option>
 				<option>newGame</option>
-				<option>joinGame</option>
+				<option>start</option>
+				<option>stop</option>
 			</select>
-			<input
-				type="text" name="lobbyMessage" id="lobbyMessage" value='' /> 
 			<input
 				type="button" value="Send" onclick="FOOBALL.wsclient.send(lobbySocket, this.form.lobbyMessage.value)" />
 		</div>
+		input
+		<br>
+			<textarea 
+				type="text" name="lobbyMessage" id="lobbyMessage" value='' style="width: 500px; height: 50px;"></textarea> 
+		<br>
 		output
 		<br>
 		<textarea id="lobbyResponseText" style="width: 500px; height: 200px;"></textarea>
 		</div>
-		<div style="border:1px solid green">
+		<div style="border:1px solid green; padding: 5px">
 		<div>
-		<input type="button" value="Connect Game" onclick="connectGame();" /> 
-		<input type="button" value="Disconnect Game" onclick="gameSocket.close();" /> 
-			<input
-				type="text" name="message" id="message" value='' /> 
+		<h3>Game</h3>
+		<input type="text" id="id" name="id" value="1" />
+		<input type="button" value="Connect" onclick="connectGame(document.getElementById('id').value);" /> 
+		<input type="button" value="Disconnect" onclick="gameSocket.close();" /> 
 		<select name="choose" id="choose"
 				onchange="this.form.message.value=getMessage(this.options[this.selectedIndex].value)">
 				<option></option>
+				<option>status</option>
 				<option>move</option>
+				<option>start</option>
+				<option>stop</option>
+				<option>joinGame</option>
 			</select>
 			<input
 				type="button" value="Send" onclick="FOOBALL.wsclient.send(gameSocket, this.form.message.value)" />
 		</div>
-		Game output
+		input
+		<br>
+			<textarea 
+				type="text" name="message" id="message" value='' style="width: 500px; height: 50px;"></textarea> 
+		<br>
+		output
 		<br>
 		<textarea id="gameResponseText" style="width: 500px; height: 200px;"></textarea>
 		</div>
@@ -57,8 +71,8 @@
 	    var ta = document.getElementById('lobbyResponseText');
 	    lobbySocket = FOOBALL.wsclient.connectDefault(url, ta);
 	  }
-	  function connectGame() {
-	    var url= "ws://localhost:8888/game/1";
+	  function connectGame(id) {
+	    var url= "ws://localhost:8888/game/"+id;
 	    var ta = document.getElementById('gameResponseText');
 	    gameSocket = FOOBALL.wsclient.connectDefault(url, ta);
 	  }
@@ -66,10 +80,16 @@
 	   console.log(name);
 	  	if(name=="move") {
 	  		return JSON.stringify({id: "1", components:[{jsonClass: "UserInput", "typ": "kd", "value": 1}]});
+	  	} else if(name=="status") {
+	  		return JSON.stringify({components:[{jsonClass: "Status", "full" : true}]});
 	  	} else if(name=="newGame") {
 	  		return JSON.stringify({components:[{jsonClass: "NewGame", "id": "1"}]});
-	  	} else if(name=="newGame") {
+	  	} else if(name=="joinGame") {
 	  		return JSON.stringify({components:[{jsonClass: "JoinGame", "id": "1"}]});
+	  	} else if(name=="start") {
+	  		return JSON.stringify({components:[{jsonClass: "Start"}]});
+	  	} else if(name=="stop") {
+	  		return JSON.stringify({components:[{jsonClass: "Stop"}]});
 	  	} else {
 	  		return "";
 	  	}

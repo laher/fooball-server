@@ -20,12 +20,15 @@ import nz.net.laher.fooball.message.NewGame
 import nz.net.laher.fooball.message.JoinGame
 import nz.net.laher.fooball.message.Stop
 import nz.net.laher.fooball.message.Start
+import nz.net.laher.fooball.message.Status
 
 object Serializers {
+	  val shortTypeHints= ShortTypeHints(List(classOf[UserInput],classOf[UserState],
+		      classOf[JoinGame],classOf[NewGame],classOf[Stop],classOf[Start],classOf[Status]))
+		      
       val longFormats = new DefaultFormats { 
-    	  override val typeHints = ShortTypeHints(List(classOf[UserInput], classOf[UserState],
-		      classOf[JoinGame],classOf[NewGame],classOf[Stop],classOf[Start]))
-      }
+    	  override val typeHints = shortTypeHints      
+    	  }
 
       val userInputSerializer = FieldSerializer[UserInput](
            FieldSerializer.renameTo("typ", "t") orElse FieldSerializer.renameTo("value", "v"),
@@ -41,8 +44,7 @@ object Serializers {
            
       val defaultFormats = new DefaultFormats {
 		  override val typeHintFieldName = "jc"
-		  override val typeHints = ShortTypeHints(List(classOf[UserInput],classOf[UserState],
-		      classOf[JoinGame],classOf[NewGame],classOf[Stop],classOf[Start]))
+		  override val typeHints = shortTypeHints
 	  } + userInputSerializer + userStateSerializer + messageSerializer + FieldSerializer[NewGame]() + FieldSerializer[JoinGame]()
 	  
       

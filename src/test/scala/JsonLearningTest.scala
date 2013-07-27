@@ -32,14 +32,14 @@ class ExampleSpec extends FunSpec {
 	    assert(x === """{"typ":"kd","value":1}""")
 	    
 	    formats= Serialization.formats(ShortTypeHints(List(classOf[UserInput], classOf[UserState])))
-	    var z= write(GameMessage("1", components = List(UserInput("kd", 1), UserInput("kd", 2))))
+	    var z= write(GameMessage(components = List(UserInput("kd", 1), UserInput("kd", 2))))
 	    println(z)
 	    assert(z === s3)
     }
     
     it("should use field serializers") {
       implicit var formats= Serializers.defaultFormats 
-      var z= write(GameMessage("1", components = List(UserInput("kd", 1), UserInput("ku", 2), UserState(ListBuffer[Int](1,2,3)))))
+      var z= write(GameMessage(components = List(UserInput("kd", 1), UserInput("ku", 2), UserState(ListBuffer[Int](1,2,3)))))
 	  println(z)
       var y= write(List(UserInput("kd", 1), UserInput("ku", 2), UserState(ListBuffer[Int](1,2,3))))
 	  println(y)
